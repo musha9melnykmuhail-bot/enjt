@@ -1,4 +1,3 @@
--- Авто-сброс и очистка прошлых запусков при повторном инжекте
 if getgenv().ThoriumLib_Cleanup then
     pcall(getgenv().ThoriumLib_Cleanup)
 end
@@ -28,10 +27,10 @@ end
 
 getgenv().ThoriumLib_Loaded = true
 
--- Проверка Place ID (Murder Mystery 2: 142823291)
+-- Place ID (Murder Mystery 2: 142823291)
 local TARGET_PLACE_ID = 142823291
 if game.PlaceId ~= TARGET_PLACE_ID then
-    warn("[ThoriumLib] Неверный Place ID (" .. tostring(game.PlaceId) .. ")! Ожидался: " .. tostring(TARGET_PLACE_ID))
+    warn("[ThoriumLib] Wrong Place ID (" .. tostring(game.PlaceId) .. ")! Was expected: " .. tostring(TARGET_PLACE_ID))
     return
 end
 
@@ -122,7 +121,7 @@ SplashTitle.Name = "SplashTitle"
 SplashTitle.Size = UDim2.new(0, 500, 0, 80)
 SplashTitle.Position = UDim2.new(0.5, -250, 0.5, -40)
 SplashTitle.BackgroundTransparency = 1
-SplashTitle.Text = "THORIUM<font color='#6C5CE7'>LIB</font>"
+SplashTitle.Text = "TORIUM<font color='#6C5CE7'>v2.1</font>"
 SplashTitle.RichText = true
 SplashTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
 SplashTitle.TextTransparency = 1
@@ -257,7 +256,7 @@ local Title = Instance.new("TextLabel")
 Title.Name = "Title"
 Title.Size = UDim2.new(1, 0, 0, 50)
 Title.BackgroundTransparency = 1
-Title.Text = "Thoriumlib <font color='#6C5CE7'>v2.0</font>"
+Title.Text = "Torium <font color='#6C5CE7'>v2.1</font>"
 Title.RichText = true
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.TextSize = 18
@@ -721,11 +720,11 @@ end
 
 local mm2Page        = createTab("MM2 Main", "⚡")
 local visualsPage    = createTab("Visuals", "👁")
+local extraPage      = createTab("Extra", "✨")
 local movementPage   = createTab("Movement", "🏃")
 local teleportsPage  = createTab("Teleports", "📍")
 local automationPage = createTab("Automation", "⚙")
-local miscPage       = createTab("Misc", "🔧")
-local extraPage      = createTab("Extra", "✨")
+local miscPage       = createTab("Miscellaneous", "🔧")
 
 local function GetMurderer()
     for _, plr in ipairs(Players:GetPlayers()) do
@@ -1925,13 +1924,13 @@ table.insert(activeCleanups, function()
     originalProps = {}
 end)
 
--- НОВЫЕ ФУНКЦИИ (Cyber Twilight, Starlight Fog, Aether Rain, Eclipse Light, Cloud Drift) --
+-- (Cyber Twilight, Starlight Fog, Aether Rain, Eclipse Light, Cloud Drift) --
 
 local backupClockTime = Lighting.ClockTime
 local backupColorShift = Lighting.ColorShift_Top
 local backupOutdoorAmb = Lighting.OutdoorAmbient
 local cyberTwilightLoop = nil
-extraPage:AddToggle("Cyber Twilight (Вечный Закат)", false, function(state)
+extraPage:AddToggle("Cyber Twilight", false, function(state)
     if state then
         cyberTwilightLoop = RunService.RenderStepped:Connect(function()
             Lighting.ClockTime = 17.5
@@ -1955,7 +1954,7 @@ end)
 local backupFogColor = Lighting.FogColor
 local backupFogStart = Lighting.FogStart
 local backupFogEnd = Lighting.FogEnd
-extraPage:AddToggle("Starlight Fog (Космический Туман)", false, function(state)
+extraPage:AddToggle("Starlight Fog", false, function(state)
     if state then
         Lighting.FogColor = Color3.fromRGB(15, 10, 50)
         Lighting.FogStart = 40
@@ -1973,7 +1972,7 @@ table.insert(activeCleanups, function()
 end)
 
 local aetherRainPart = nil
-extraPage:AddToggle("Aether Rain (Легкий Неоновый Дождь)", false, function(state)
+extraPage:AddToggle("Aether Rain", false, function(state)
     if state then
         if not aetherRainPart then
             aetherRainPart = Instance.new("Part")
@@ -2020,7 +2019,7 @@ local backupBrightness = Lighting.Brightness
 local backupAmbientEclipse = Lighting.Ambient
 local backupGlobalShadows = Lighting.GlobalShadows
 local backupExposure = Lighting.ExposureCompensation
-extraPage:AddToggle("Eclipse Light (Затмение)", false, function(state)
+extraPage:AddToggle("Eclipse Light", false, function(state)
     if state then
         Lighting.Brightness = 0.3
         Lighting.Ambient = Color3.fromRGB(10, 10, 15)
@@ -2041,7 +2040,7 @@ table.insert(activeCleanups, function()
 end)
 
 local customDriftClouds = nil
-extraPage:AddToggle("Cloud Drift (Медленные Облака)", false, function(state)
+extraPage:AddToggle("Cloud Drift", false, function(state)
     if state then
         if not customDriftClouds then
             customDriftClouds = Instance.new("Clouds")
