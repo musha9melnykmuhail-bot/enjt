@@ -1,3 +1,4 @@
+-- Авто-сброс и очистка прошлых запусков при повторном инжекте
 if getgenv().ThoriumLib_Cleanup then
     pcall(getgenv().ThoriumLib_Cleanup)
 end
@@ -27,7 +28,7 @@ end
 
 getgenv().ThoriumLib_Loaded = true
 
--- Place ID (Murder Mystery 2: 142823291)
+-- Проверка Place ID (Murder Mystery 2: 142823291)
 local TARGET_PLACE_ID = 142823291
 if game.PlaceId ~= TARGET_PLACE_ID then
     warn("[ThoriumLib] Неверный Place ID (" .. tostring(game.PlaceId) .. ")! Ожидался: " .. tostring(TARGET_PLACE_ID))
@@ -1788,4 +1789,138 @@ extraPage:AddToggle("Gamma Mode", false, function(state)
 end)
 table.insert(activeCleanups, function()
     if gammaEffect then gammaEffect:Destroy() end
+end)
+
+-- ДОБАВЛЕННЫЕ ФУНКЦИИ --
+
+local astralStepsLoop = nil
+extraPage:AddToggle("Astral Steps (Звездные Следы)", false, function(state)
+    if state then
+        astralStepsLoop = task.spawn(function()
+            local lastStepPos = Vector3.new()
+            while true do
+                if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+                    local hrp = LocalPlayer.Character.HumanoidRootPart
+                    local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+                    
+                    if hum.Health > 0 and hum.MoveDirection.Magnitude > 0 then
+                        local pos = hrp.Position
+                        if (Vector3.new(pos.X, 0, pos.Z) - Vector3.new(lastStepPos.X, 0, lastStepPos.Z)).Magnitude >= 3.5 then
+                            lastStepPos = pos
+                            
+                            local step = Instance.new("Part")
+                            step.Size = Vector3.new(3, 0.1, 3)
+                            step.CFrame = hrp.CFrame * CFrame.new(0, -3, 0)
+                            step.Anchored = true
+                            step.CanCollide = false
+                            step.Material = Enum.Material.Neon
+                            
+                            if math.random() > 0.5 then
+                                step.Color = Color3.fromRGB(0, 200, 255)
+                            else
+                                step.Color = Color3.fromRGB(150, 0, 255)
+                            end
+                            
+                            local cyl = Instance.new("CylinderMesh")
+                            cyl.Parent = step
+                            
+                            step.Parent = Workspace
+                            
+                            local fadeTween = TweenService:Create(step, TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {Transparency = 1, Size = Vector3.new(1, 0.1, 1)})
+                            fadeTween:Play()
+                            
+                            fadeTween.Completed:Connect(function()
+                                step:Destroy()
+                            end)
+                        end
+                    end
+                end
+                task.wait(0.05)
+            end
+        end)
+        table.insert(activeCleanups, function() if astralStepsLoop then task.cancel(astralStepsLoop) end end)
+    else
+        if astralStepsLoop then 
+            task.cancel(astralStepsLoop) 
+            astralStepsLoop = nil 
+        end
+    end
+end)
+
+local synthwaveEnabled = false
+local originalProps = {}
+local synthwaveConn = nil
+
+local function applySynthwave(part)
+    if not part:IsA("BasePart") or (part.Parent and part.Parent:FindFirstChildOfClass("Humanoid")) then return end
+    if not originalProps[part] then
+        originalProps[part] = {
+            Material = part.Material,
+            Color = part.Color
+        }
+    end
+    part.Material = Enum.Material.Neon
+    part.Color = math.random() > 0.5 and Color3.fromRGB(30, 0, 60) or Color3.fromRGB(0, 100, 200)
+end
+
+extraPage:AddToggle("Synthwave Matrix (Неоновый Мир)", false, function(state)
+    synthwaveEnabled = state
+    if state then
+        for _, obj in ipairs(Workspace:GetDescendants()) do
+            if obj:IsA("BasePart") then
+                applySynthwave(obj)
+            elseif obj:IsA("Texture") or obj:IsA("Decal") then
+                if not originalProps[obj] then
+                    originalProps[obj] = { Transparency = obj.Transparency }
+                end
+                obj.Transparency = 1
+            end
+        end
+        
+        synthwaveConn = Workspace.DescendantAdded:Connect(function(child)
+            if synthwaveEnabled then
+                task.wait(0.1)
+                if child:IsA("BasePart") then
+                    applySynthwave(child)
+                elseif child:IsA("Texture") or child:IsA("Decal") then
+                    if not originalProps[child] then
+                        originalProps[child] = { Transparency = child.Transparency }
+                    end
+                    child.Transparency = 1
+                end
+            end
+        end)
+        table.insert(activeCleanups, function() if synthwaveConn then synthwaveConn:Disconnect() end end)
+    else
+        if synthwaveConn then 
+            synthwaveConn:Disconnect() 
+            synthwaveConn = nil 
+        end
+        for obj, props in pairs(originalProps) do
+            if obj and obj.Parent then
+                if obj:IsA("BasePart") then
+                    obj.Material = props.Material
+                    obj.Color = props.Color
+                elseif obj:IsA("Texture") or obj:IsA("Decal") then
+                    obj.Transparency = props.Transparency
+                end
+            end
+        end
+        originalProps = {}
+    end
+end)
+table.insert(activeCleanups, function()
+    synthwaveEnabled = false
+    if synthwaveConn then synthwaveConn:Disconnect() end
+    for obj, props in pairs(originalProps) do
+        if obj and obj.Parent then
+            if obj:IsA("BasePart") then
+                obj.Material = props.Material
+                obj.Color = props.Color
+            elseif obj:IsA("Texture") or obj:IsA("Decal") then
+                obj.Transparency = props.Transparency
+            end
+        end
+    end
+    originalProps = {}
 end)
