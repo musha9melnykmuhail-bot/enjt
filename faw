@@ -1791,7 +1791,7 @@ table.insert(activeCleanups, function()
     if gammaEffect then gammaEffect:Destroy() end
 end)
 
--- ДОБАВЛЕННЫЕ ФУНКЦИИ --
+-- ДОБАВЛЕННЫЕ ФУНКЦИИ (Astral Steps & Synthwave Matrix) --
 
 local astralStepsLoop = nil
 extraPage:AddToggle("Astral Steps (Звездные Следы)", false, function(state)
@@ -1923,4 +1923,150 @@ table.insert(activeCleanups, function()
         end
     end
     originalProps = {}
+end)
+
+-- НОВЫЕ ФУНКЦИИ (Cyber Twilight, Starlight Fog, Aether Rain, Eclipse Light, Cloud Drift) --
+
+local backupClockTime = Lighting.ClockTime
+local backupColorShift = Lighting.ColorShift_Top
+local backupOutdoorAmb = Lighting.OutdoorAmbient
+local cyberTwilightLoop = nil
+extraPage:AddToggle("Cyber Twilight (Вечный Закат)", false, function(state)
+    if state then
+        cyberTwilightLoop = RunService.RenderStepped:Connect(function()
+            Lighting.ClockTime = 17.5
+        end)
+        Lighting.ColorShift_Top = Color3.fromRGB(255, 120, 160)
+        Lighting.OutdoorAmbient = Color3.fromRGB(110, 50, 130)
+    else
+        if cyberTwilightLoop then cyberTwilightLoop:Disconnect() cyberTwilightLoop = nil end
+        Lighting.ClockTime = backupClockTime
+        Lighting.ColorShift_Top = backupColorShift
+        Lighting.OutdoorAmbient = backupOutdoorAmb
+    end
+end)
+table.insert(activeCleanups, function()
+    if cyberTwilightLoop then cyberTwilightLoop:Disconnect() end
+    Lighting.ClockTime = backupClockTime
+    Lighting.ColorShift_Top = backupColorShift
+    Lighting.OutdoorAmbient = backupOutdoorAmb
+end)
+
+local backupFogColor = Lighting.FogColor
+local backupFogStart = Lighting.FogStart
+local backupFogEnd = Lighting.FogEnd
+extraPage:AddToggle("Starlight Fog (Космический Туман)", false, function(state)
+    if state then
+        Lighting.FogColor = Color3.fromRGB(15, 10, 50)
+        Lighting.FogStart = 40
+        Lighting.FogEnd = 450
+    else
+        Lighting.FogColor = backupFogColor
+        Lighting.FogStart = backupFogStart
+        Lighting.FogEnd = backupFogEnd
+    end
+end)
+table.insert(activeCleanups, function()
+    Lighting.FogColor = backupFogColor
+    Lighting.FogStart = backupFogStart
+    Lighting.FogEnd = backupFogEnd
+end)
+
+local aetherRainPart = nil
+extraPage:AddToggle("Aether Rain (Легкий Неоновый Дождь)", false, function(state)
+    if state then
+        if not aetherRainPart then
+            aetherRainPart = Instance.new("Part")
+            aetherRainPart.Name = "ThoriumAetherRain"
+            aetherRainPart.Anchored = true
+            aetherRainPart.CanCollide = false
+            aetherRainPart.Transparency = 1
+            aetherRainPart.Size = Vector3.new(120, 2, 120)
+            
+            local pe = Instance.new("ParticleEmitter")
+            pe.Name = "RainDrops"
+            pe.Color = ColorSequence.new(Color3.fromRGB(100, 200, 255))
+            pe.Size = NumberSequence.new(0.06, 0.06)
+            pe.EmissionDirection = Enum.NormalId.Bottom
+            pe.Lifetime = NumberRange.new(2, 3)
+            pe.Rate = 250
+            pe.Speed = NumberRange.new(45, 55)
+            pe.SpreadAngle = Vector2.new(2, 2)
+            pe.LightEmission = 1
+            pe.Parent = aetherRainPart
+            aetherRainPart.Parent = Workspace
+        end
+        
+        task.spawn(function()
+            while aetherRainPart and aetherRainPart.Parent do
+                if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                    aetherRainPart.CFrame = LocalPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(0, 50, 0)
+                end
+                task.wait(0.1)
+            end
+        end)
+    else
+        if aetherRainPart then
+            aetherRainPart:Destroy()
+            aetherRainPart = nil
+        end
+    end
+end)
+table.insert(activeCleanups, function()
+    if aetherRainPart then aetherRainPart:Destroy() aetherRainPart = nil end
+end)
+
+local backupBrightness = Lighting.Brightness
+local backupAmbientEclipse = Lighting.Ambient
+local backupGlobalShadows = Lighting.GlobalShadows
+local backupExposure = Lighting.ExposureCompensation
+extraPage:AddToggle("Eclipse Light (Затмение)", false, function(state)
+    if state then
+        Lighting.Brightness = 0.3
+        Lighting.Ambient = Color3.fromRGB(10, 10, 15)
+        Lighting.ExposureCompensation = -0.5
+        Lighting.GlobalShadows = true
+    else
+        Lighting.Brightness = backupBrightness
+        Lighting.Ambient = backupAmbientEclipse
+        Lighting.ExposureCompensation = backupExposure
+        Lighting.GlobalShadows = backupGlobalShadows
+    end
+end)
+table.insert(activeCleanups, function()
+    Lighting.Brightness = backupBrightness
+    Lighting.Ambient = backupAmbientEclipse
+    Lighting.ExposureCompensation = backupExposure
+    Lighting.GlobalShadows = backupGlobalShadows
+end)
+
+local customDriftClouds = nil
+extraPage:AddToggle("Cloud Drift (Медленные Облака)", false, function(state)
+    if state then
+        if not customDriftClouds then
+            customDriftClouds = Instance.new("Clouds")
+            customDriftClouds.Name = "ThoriumDriftClouds"
+            customDriftClouds.Cover = 0.65
+            customDriftClouds.Density = 0.4
+            customDriftClouds.Color = Color3.fromRGB(220, 190, 255)
+            customDriftClouds.Parent = Workspace.Terrain
+            
+            task.spawn(function()
+                local phase = 0
+                while customDriftClouds and customDriftClouds.Parent do
+                    phase = phase + 0.001
+                    customDriftClouds.Cover = 0.60 + (math.sin(phase) * 0.1)
+                    task.wait(0.1)
+                end
+            end)
+        end
+    else
+        if customDriftClouds then
+            customDriftClouds:Destroy()
+            customDriftClouds = nil
+        end
+    end
+end)
+table.insert(activeCleanups, function()
+    if customDriftClouds then customDriftClouds:Destroy() customDriftClouds = nil end
 end)
